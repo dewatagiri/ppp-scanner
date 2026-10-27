@@ -6,6 +6,15 @@
 <title>PPP: Pantau Pecah Paras Scanner (Breakout Screener)</title>
 <meta name="description" content="Free end-of-day breakout screener for US, UK, Japan, Singapore, Malaysia, Indonesia, Hong Kong and FX. For education and research only.">
 <meta name="theme-color" content="#ffffff">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PPP Scanner: free end-of-day breakout screener">
+<meta property="og:description" content="Breakout, pullback, tight-range, gap and leader scans for New York, London, Tokyo, Singapore, Kuala Lumpur, Jakarta, Hong Kong and FX. For education and research only.">
+<meta property="og:url" content="https://dewatagiri.github.io/ppp-scanner/">
+<meta property="og:image" content="https://dewatagiri.github.io/ppp-scanner/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://dewatagiri.github.io/ppp-scanner/assets/og-image.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="assets/icon-192.png">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -125,15 +134,6 @@ footer p{margin:0}
 
 <footer>
   <div class="inner">
-    <template id="support-tpl">
-    <div class="support">
-      <p class="cap">Support this free tool</p>
-      <div class="qrs">
-        <figure><a id="wiselink" href="#" target="_blank" rel="noopener" style="pointer-events:none"><img id="wiseimg" src="assets/qr-wise.png" alt="Wise QR code to support this free tool" width="160" height="160"></a><figcaption class="sub">Wise (international)</figcaption></figure>
-        <figure><img src="assets/qr.png" alt="Local bank QR code to support this free tool" width="160" height="160"><figcaption class="sub">Local QR (DuitNow / QRIS)</figcaption></figure>
-      </div>
-    </div>
-    </template>
     <p>For education and research only. Not investment advice, and not a recommendation to buy or sell any security. Data comes from Yahoo Finance via yfinance and may be delayed, incomplete or wrong. Check with your broker before trading. Trading involves risk, including loss of capital. Views are my own and do not represent any organisation I am or have been affiliated with.</p>
     <p>This site collects no personal data. Settings are stored only in your own browser. Consistent with Malaysia's Personal Data Protection Act 2010 (PDPA) and Indonesia's Personal Data Protection Law (UU PDP No. 27/2022).</p>
     <p>© 2026 Azman Taufik</p>
@@ -548,7 +548,16 @@ const SHOW_SUPPORT = false;
 const WISE_URL = 'https://wise.com/pay/me/mohamedm3529';
 (function () {
   if (!SHOW_SUPPORT) return;
-  document.querySelector('footer .inner').prepend($('support-tpl').content.cloneNode(true));
+  const box = document.createElement('div'); box.className = 'support';
+  const fig = (id, src, alt, cap) => { const f = document.createElement('figure'), im = document.createElement('img'), c = document.createElement('figcaption');
+    im.id = id; im.src = src; im.alt = alt; im.width = im.height = 160; c.className = 'sub'; c.textContent = cap; f.append(im, c); return f; };
+  const cap = document.createElement('p'); cap.className = 'cap'; cap.textContent = 'Support this free tool';
+  const qrs = document.createElement('div'); qrs.className = 'qrs';
+  const wf = fig('wiseimg', 'assets/qr-wise.png', 'Wise QR code to support this free tool', 'Wise (international)');
+  const wl = document.createElement('a'); wl.id = 'wiselink'; wl.target = '_blank'; wl.rel = 'noopener'; wl.style.pointerEvents = 'none';
+  wl.append(wf.querySelector('img')); wf.prepend(wl);
+  qrs.append(wf, fig('localimg', 'assets/qr.png', 'Local bank QR code to support this free tool', 'Local QR (DuitNow / QRIS)'));
+  box.append(cap, qrs); document.querySelector('footer .inner').prepend(box);
   if (!WISE_URL || typeof qrcode !== 'function') return;
   try {
     const q = qrcode(0, 'M'); q.addData(WISE_URL); q.make();
