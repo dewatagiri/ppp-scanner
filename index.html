@@ -48,6 +48,7 @@ th{color:var(--mut);font-weight:600;font-size:12px;position:sticky;top:0;z-index
 th:first-child,td:first-child{position:sticky;left:0;z-index:1}
 th:first-child{z-index:3}
 tbody tr{cursor:pointer}
+tbody tr.nohit{cursor:default}tr.nohit td{padding:0;position:static}tr.nohit .nh{position:sticky;left:0;width:min(100%,calc(100vw - 64px));text-align:center;padding:22px 8px;white-space:normal;color:var(--mut)}tr.nohit b{color:var(--am);letter-spacing:1px}
 tbody tr:hover td,tbody tr.sel td{background:var(--rowhov)}
 .up{color:var(--em)}.dn{color:var(--rd)}
 .na{color:var(--mut);font-size:12px}
@@ -124,6 +125,7 @@ footer p{margin:0}
 
 <footer>
   <div class="inner">
+    <template id="support-tpl">
     <div class="support">
       <p class="cap">Support this free tool</p>
       <div class="qrs">
@@ -131,6 +133,7 @@ footer p{margin:0}
         <figure><img src="assets/qr.png" alt="Local bank QR code to support this free tool" width="160" height="160"><figcaption class="sub">Local QR (DuitNow / QRIS)</figcaption></figure>
       </div>
     </div>
+    </template>
     <p>For education and research only. Not investment advice, and not a recommendation to buy or sell any security. Data comes from Yahoo Finance via yfinance and may be delayed, incomplete or wrong. Check with your broker before trading. Trading involves risk, including loss of capital. Views are my own and do not represent any organisation I am or have been affiliated with.</p>
     <p>This site collects no personal data. Settings are stored only in your own browser. Consistent with Malaysia's Personal Data Protection Act 2010 (PDPA) and Indonesia's Personal Data Protection Law (UU PDP No. 27/2022).</p>
     <p>© 2026 Azman Taufik</p>
@@ -149,7 +152,7 @@ const I18N = {
     stocks: 'Stocks', fxGroup: 'Forex (own section, no volume)',
     minvol: 'Min Dollar Vol ({c}M):', minvolFx: 'Volume filter: n/a (FX)', pivot: 'Breakout Pivot (Prior 20D High)',
     rulesTitle: 'Filter Rules', codeBtn: 'View Python Code (Pandas)', csv: 'Export CSV', close: 'Close', copy: 'Copy Code', copied: 'Copied ✓',
-    matches: 'matches', none: 'No matches', ok: '● SCHEDULED SCAN', bad: '● DATA UNAVAILABLE', loading: 'Loading…',
+    matches: 'matches', none: '— NO HIT —', noneHint: 'Nothing matches this scan today. Try another scan, or lower the Min Dollar Vol slider.', ok: '● SCHEDULED SCAN', bad: '● DATA UNAVAILABLE', loading: 'Loading…',
     sliderRule: 'Min avg dollar volume slider', pyTitle: 'Python (Pandas) Code — ',
     unavail: 'Data unavailable for {b} — last good scan: {t}', never: 'none yet',
     asof: 'Data as of', local: 'local time', lastSession: 'Last session', failedN: 'Failed tickers', source: 'Source',
@@ -200,7 +203,7 @@ const I18N = {
     stocks: 'Saham', fxGroup: 'Forex (bahagian sendiri, tiada volum)',
     minvol: 'Volum Dolar Min ({c}J):', minvolFx: 'Penapis volum: tiada (FX)', pivot: 'Pivot Pecah Paras (Tinggi 20H Terdahulu)',
     rulesTitle: 'Kriteria Peraturan (Filter Rules)', codeBtn: 'Lihat Kod Python (Pandas)', csv: 'Eksport CSV', close: 'Tutup', copy: 'Salin Kod', copied: 'Disalin ✓',
-    matches: 'padanan', none: 'Tiada padanan', ok: '● IMBASAN BERJADUAL', bad: '● DATA TIDAK TERSEDIA', loading: 'Memuatkan…',
+    matches: 'padanan', none: '— TIADA PADANAN —', noneHint: 'Tiada saham sepadan dengan imbasan ini hari ini. Cuba imbasan lain, atau rendahkan slaid Volum Dolar Min.', ok: '● IMBASAN BERJADUAL', bad: '● DATA TIDAK TERSEDIA', loading: 'Memuatkan…',
     sliderRule: 'Slaid volum dolar purata minimum', pyTitle: 'Kod Python (Pandas) — ',
     unavail: 'Data tidak tersedia untuk {b} — imbasan baik terakhir: {t}', never: 'belum ada',
     asof: 'Data setakat', local: 'waktu tempatan', lastSession: 'Sesi terakhir', failedN: 'Simbol gagal', source: 'Sumber',
@@ -463,7 +466,7 @@ function render() {
     <td class="${i.ChangePct >= 0 ? 'up' : 'dn'}">${f(i.ChangePct)}</td><td>${f(i.High20Prior, p)}</td><td>${volCell(i.VolRatio == null ? '–' : f(i.VolRatio) + '×')}</td><td>${volCell(fdv(i.DollarVol20))}</td>
     <td>${f(i.EMA20, p)}</td><td>${f(i.SMA50, p)}</td><td>${f(i.Range10)}</td><td class="${i.ROC20 >= 0 ? 'up' : 'dn'}">${f(i.ROC20)}</td>
     <td class="${i.OpenGapPct >= 0 ? 'up' : 'dn'}">${f(i.OpenGapPct)}</td><td>${pre(i)}</td><td class="${v ? '' : 'warn'}">${nTested}/${S_.total}</td></tr>`).join('')
-    || `<tr><td colspan="14" style="text-align:center;color:var(--mut)">${esc(t().none)}</td></tr>`;
+    || `<tr class="nohit"><td colspan="14"><div class="nh"><b>${esc(t().none)}</b><br><span class="note">${esc(t().noneHint)}</span></div></td></tr>`;
   const mets = L.metrics.concat(v ? [[t().sliderRule, `${meta.sym}${Number(m).toLocaleString('en')}M`]]
     : [[t().fxMetric, t().fxMetricV.replace('{n}', nTested).replace('{m}', S_.total)], [t().cols[5], t().volNa]]);
   $('rules').innerHTML = '<ul class="rules">' + L.rules.map(r => `<li>${esc(r)}</li>`).join('') + '</ul>' +
@@ -538,11 +541,14 @@ $('a2hs').onclick = async () => {
 $('a2hsclose').onclick = () => $('a2hsdlg').close();
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-// Wise QR is drawn in the browser from a link. Paste your Wise payment link between the quotes
-// (Wise > Request money > create a link). Leave empty to keep the placeholder image. Do NOT put
-// bank account numbers here: this file is public.
+// "Support this free tool" QR codes are hidden for now. Set SHOW_SUPPORT = true to show them
+// (planned for after 31 Dec 2026, once cleared). While false, the QR images are not even loaded.
+const SHOW_SUPPORT = false;
+// Wise QR is drawn in the browser from a link. Do NOT put bank account numbers here: this file is public.
 const WISE_URL = 'https://wise.com/pay/me/mohamedm3529';
 (function () {
+  if (!SHOW_SUPPORT) return;
+  document.querySelector('footer .inner').prepend($('support-tpl').content.cloneNode(true));
   if (!WISE_URL || typeof qrcode !== 'function') return;
   try {
     const q = qrcode(0, 'M'); q.addData(WISE_URL); q.make();

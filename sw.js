@@ -1,7 +1,7 @@
 // Minimal service worker: network first, cached copy when offline. Makes the app installable.
 const CACHE = 'ppp-v1';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'assets/lightweight-charts.standalone.production.js',
-  'assets/icon-192.png', 'assets/icon-512.png', 'assets/qr.png', 'assets/qr-wise.png', 'assets/qrcode.js'];
+  'assets/icon-192.png', 'assets/icon-512.png', 'assets/qrcode.js'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
