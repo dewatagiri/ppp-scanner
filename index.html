@@ -12,7 +12,8 @@
 <script src="assets/lightweight-charts.standalone.production.js"></script>
 <script src="assets/qrcode.js"></script>
 <style>
-:root{--bg:#ffffff;--panel:#ffffff;--soft:#f8fafc;--line:#e2e8f0;--tx:#0f172a;--mut:#475569;--cy:#0e7490;--am:#b45309;--em:#047857;--rd:#b91c1c;--onacc:#ffffff;--code:#0e7490;--hov:#0e749014}
+:root{--rowhov:#ecf6f8;--bnbg:#fffbeb;--bntx:#78350f;--ebg:#fef2f2;--etx:#7f1d1d;--ema:#0e7490;--sma:#b45309;--piv:#334155;--bg:#ffffff;--panel:#ffffff;--soft:#f8fafc;--line:#e2e8f0;--tx:#0f172a;--mut:#475569;--cy:#0e7490;--am:#b45309;--em:#047857;--rd:#b91c1c;--onacc:#ffffff;--code:#0e7490;--hov:#0e749014}
+[data-theme=dark]{color-scheme:dark;--rowhov:#1a2742;--bnbg:#2a2210;--bntx:#fde68a;--ebg:#2a1214;--etx:#fecaca;--ema:#22d3ee;--sma:#fbbf24;--piv:#e2e8f0;--bg:#0b1220;--panel:#111a2e;--soft:#16213a;--line:#25324d;--tx:#e2e8f0;--mut:#94a3b8;--cy:#22d3ee;--am:#fbbf24;--em:#34d399;--rd:#f87171;--onacc:#042f3a;--code:#a5f3fc;--hov:#22d3ee1a}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace}
 header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
@@ -47,7 +48,7 @@ th{color:var(--mut);font-weight:600;font-size:12px;position:sticky;top:0;z-index
 th:first-child,td:first-child{position:sticky;left:0;z-index:1}
 th:first-child{z-index:3}
 tbody tr{cursor:pointer}
-tbody tr:hover td,tbody tr.sel td{background:#ecf6f8}
+tbody tr:hover td,tbody tr.sel td{background:var(--rowhov)}
 .up{color:var(--em)}.dn{color:var(--rd)}
 .na{color:var(--mut);font-size:12px}
 .warn{color:var(--am);font-weight:700}
@@ -60,14 +61,17 @@ ul.rules li{margin:6px 0}
 .asof b{color:var(--tx)}
 .asof details{display:inline}
 .asof summary{cursor:pointer;color:var(--am)}
-.banner{padding:10px 12px;border:1px solid var(--am);border-radius:6px;background:#fffbeb;color:#78350f;font-size:13px}
-.unavail{padding:18px;border:1px solid var(--rd);border-radius:8px;background:#fef2f2;color:#7f1d1d;font-weight:700}
+.banner{padding:10px 12px;border:1px solid var(--am);border-radius:6px;background:var(--bnbg);color:var(--bntx);font-size:13px}
+.unavail{padding:18px;border:1px solid var(--rd);border-radius:8px;background:var(--ebg);color:var(--etx);font-weight:700}
 .nodata .hide-nodata{display:none}
 .nodata .grid{display:none}
 dialog{background:var(--panel);color:var(--tx);border:1px solid var(--cy);border-radius:8px;max-width:820px;width:92%}
 dialog::backdrop{background:#0006}
 pre{background:var(--soft);padding:12px;border-radius:6px;overflow:auto;max-height:60vh;color:var(--code);margin:10px 0;border:1px solid var(--line)}
 .note{color:var(--mut);font-size:12px}
+.how{margin:0;padding-left:20px}.how li{margin:6px 0}
+.gloss{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:6px 14px;margin:0}.gloss dt{font-weight:700;color:var(--cy)}.gloss dd{margin:0}
+@media(max-width:600px){.gloss{grid-template-columns:minmax(0,1fr);gap:0}.gloss dd{margin:0 0 8px}}
 footer{border-top:1px solid var(--line);padding:24px 16px 32px;text-align:center;color:var(--mut);font-size:12px;line-height:1.6}
 footer .inner{max-width:760px;margin:0 auto;display:grid;gap:16px;justify-items:center}
 footer figure{margin:0}
@@ -84,6 +88,7 @@ footer p{margin:0}
   <div class="hr">
     <span id="status" class="badge sim" role="status"></span>
     <button id="a2hs" hidden></button>
+    <button id="themebtn" aria-label="Theme"></button>
     <button id="langbtn" aria-label="Language">BM</button>
   </div>
 </header>
@@ -100,7 +105,7 @@ footer p{margin:0}
   <div class="grid">
     <section class="card">
       <h2 id="charttitle"></h2>
-      <div class="legend"><span><i style="border-color:#0e7490"></i>EMA 20</span><span><i style="border-color:#b45309"></i>SMA 50</span><span><i style="border-color:var(--tx);border-top-style:dashed"></i><span data-i18n="pivot"></span></span></div>
+      <div class="legend"><span><i style="border-color:var(--ema)"></i>EMA 20</span><span><i style="border-color:var(--sma)"></i>SMA 50</span><span><i style="border-color:var(--tx);border-top-style:dashed"></i><span data-i18n="pivot"></span></span></div>
       <div id="chart"></div>
     </section>
     <aside class="card">
@@ -114,6 +119,7 @@ footer p{margin:0}
     <p class="asof" id="asof"></p>
     <div class="tw"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
   </section>
+  <section class="card" id="howto"></section>
 </main>
 
 <footer>
@@ -152,17 +158,41 @@ const I18N = {
     volNa: 'Vol: n/a', na: 'n/a', tested: 'Tests',
     fxBanner: 'Forex has no volume data (Vol: n/a). Volume conditions are skipped, so only {n} of {m} conditions were tested in this scan. FX results are shown in their own section and are not comparable with stock results.',
     fxMetric: 'Conditions tested', fxMetricV: '{n} of {m} (volume skipped)',
-    cols: ['Ticker', 'Sector', 'Close', 'Chg %', '20D Pivot', 'Vol/Avg', 'Dollar Vol (M)', 'EMA 20', 'SMA 50', '10D Range %', 'ROC-20 %', 'Open Gap %', 'Pre-mkt %', 'Tests'],
+    themeDark: '🌙 Dark', themeLight: '☀ Light',
+    howTitle: 'How to use',
+    how: ['Pick a <b>bourse</b> (stock exchange) in the Bourse box. Each one covers a fixed shortlist of large, well-known stocks. Forex (currency pairs) has its own entry.',
+      'Pick a <b>scan</b> with the buttons at the top. Each button looks for a different pattern. The "Filter Rules" box explains exactly what it tests.',
+      'Narrow the list with <b>Min Dollar Vol</b> (hides stocks with little money traded), <b>Sector</b> and <b>Search</b>.',
+      'Click a row in the table to see its chart. On a phone, swipe the table sideways to see more columns. On a computer, hover a column title for a short explanation.',
+      'Results are <b>end-of-day, not live</b>. "Data as of" above the table shows when they were last updated. The scan reruns after each market closes.',
+      '<b>Export CSV</b> saves the current table. This is a tool for finding ideas, not advice. Check the chart and do your own research before trading.'],
+    glossTitle: 'What the words mean',
+    gloss: [['PPP', 'Pantau Pecah Paras: Malay for "Monitor Level Breakouts". Finds stocks pushing through a recent high.'],
+      ['Bourse', 'A stock exchange (market), e.g. Bursa Malaysia.'],
+      ['Breakout / Pivot', 'A breakout is a close above the highest price of the recent past, called the pivot. 20D Pivot = the highest high of the 20 trading days before today.'],
+      ['Close / Chg %', 'Last closing price, and its change in % versus the previous close.'],
+      ['EMA 20', 'Exponential Moving Average, 20 days: the average closing price over 20 days, giving more weight to recent days.'],
+      ['SMA 50', 'Simple Moving Average, 50 days: the plain average of the last 50 closes. A price above it suggests a longer uptrend.'],
+      ['Rate of Change 20D %', 'How much the price has moved, in %, compared with 20 trading days ago. Positive = rising. (Often written ROC.)'],
+      ['Vol/Avg', "Today's volume (number of shares traded) divided by the 20-day average volume. 2× means twice the normal activity."],
+      ['Dollar Vol (M)', 'Average money traded per day (price × volume) in millions of the local currency. Shows how easy a stock is to trade.'],
+      ['10D Range %', 'Size of the last 10 days high-to-low swing as % of price. A small number means tight, quiet trading.'],
+      ['Open Gap %', "Today's regular-session opening price versus the previous close. It is not pre-market."],
+      ['Pre-mkt %', 'US only: the price before the market opened versus the previous close.'],
+      ['Tests', 'Conditions actually checked ÷ conditions in the scan. FX shows fewer because it has no volume.'],
+      ['Vol: n/a', 'Volume is not available (currency pairs have no volume data).'],
+      ['FX', 'Foreign exchange: currency pairs such as EUR/USD.']],
+    cols: ['Ticker', 'Sector', 'Close', 'Chg %', '20D Pivot', 'Vol/Avg', 'Dollar Vol (M)', 'EMA 20', 'SMA 50', '10D Range %', 'Rate of Change 20D %', 'Open Gap %', 'Pre-mkt %', 'Tests'],
     tips: ['Ticker symbol', 'Sector', 'Last regular-session close (unadjusted)', 'Close vs previous close, %', 'Highest High of the 20 bars BEFORE today (shifted one bar, no look-ahead)',
-      "Today's volume ÷ 20-day average volume. FX has no volume (Vol: n/a)", '20-day average of Close × Volume, millions of local currency. FX: n/a', '20-day exponential moving average of Close', '50-day simple moving average of Close',
-      '(10-day high − 10-day low) ÷ close × 100', 'Close vs close 20 sessions ago, %', "Open Gap % = today's regular-session OPEN vs previous CLOSE. This is NOT pre-market.",
+      "Today's volume ÷ 20-day average volume. FX has no volume (Vol: n/a)", '20-day average of Close × Volume, millions of local currency. FX: n/a', 'Exponential Moving Average: 20-day average of Close, recent days weigh more', 'Simple Moving Average: plain 50-day average of Close',
+      '(10-day high − 10-day low) ÷ close × 100', 'Rate of Change: close vs close 20 sessions ago, %', "Open Gap % = today's regular-session OPEN vs previous CLOSE. This is NOT pre-market.",
       'US only: latest pre-market price (04:00–09:30 New York) vs previous close. n/a for other bourses; – when Yahoo has no pre-market bars', 'Conditions actually tested ÷ conditions in this scan. FX skips the volume conditions'],
     scans: {
       ppp: { name: 'PPP: 20-Day Breakout', rules: ['Close > prior 20-day high (resistance pivot)', 'Volume ≥ 2.0× 20-day average volume', 'Avg 20-day dollar volume ≥ slider minimum (default 20M)'], metrics: [['Pivot', '20D'], ['Min Volume', '2.0×']] },
       pullback: { name: 'EMA 20 Pullback', rules: ['Uptrend: EMA 20 > SMA 50', "Today's low touches or dips below EMA 20", 'Close recovers above EMA 20', 'Volume < 0.8× 20-day average (dry-up)', 'Avg 20-day dollar volume ≥ slider minimum'], metrics: [['EMA / SMA', '20 / 50'], ['Max Volume', '0.8×']] },
       tight: { name: 'Tight Range at 52-Week High', rules: ['Close within 5% of the 52-week high (252 trading bars, prior to today)', '10-day range ≤ 10% of price', '10-day range near 60-day low (≤ 1.25× the low)', 'Avg 20-day dollar volume ≥ slider minimum'], metrics: [['52W Distance', '≤ 5%'], ['10D Range', '≤ 10%']] },
       gap: { name: 'Open Gappers (Open Gap %)', rules: ["Open Gap % ≥ +3% (today's open vs previous close)", 'Avg 20-day dollar volume ≥ slider minimum', 'Note: this is the regular-session opening gap. It is NOT pre-market'], metrics: [['Min Open Gap', '+3%']] },
-      leaders: { name: 'Sector Leaders (ROC-20)', rules: ['Positive 20-session ROC', 'Close above SMA 50', 'Avg 20-day dollar volume ≥ slider minimum', 'Ranked by highest ROC-20'], metrics: [['ROC Window', '20 sessions'], ['Trend', '> SMA 50']] }
+      leaders: { name: 'Sector Leaders (20-Day Rate of Change)', rules: ['Positive 20-session Rate of Change (price now vs 20 sessions ago)', 'Close above SMA 50', 'Avg 20-day dollar volume ≥ slider minimum', 'Ranked by highest Rate of Change'], metrics: [['Rate of Change window', '20 sessions'], ['Trend', '> SMA 50']] }
     }
   },
   ms: {
@@ -179,17 +209,41 @@ const I18N = {
     volNa: 'Vol: tiada', na: 'tiada', tested: 'Ujian',
     fxBanner: 'Forex tiada data volum (Vol: tiada). Syarat volum dilangkau, jadi hanya {n} daripada {m} syarat diuji dalam imbasan ini. Keputusan FX dipaparkan dalam bahagian sendiri dan tidak setanding dengan saham.',
     fxMetric: 'Syarat diuji', fxMetricV: '{n} daripada {m} (volum dilangkau)',
-    cols: ['Simbol', 'Sektor', 'Tutup', 'Ubah %', 'Pivot 20H', 'Vol/Purata', 'Volum Dolar (J)', 'EMA 20', 'SMA 50', 'Julat 10H %', 'ROC-20 %', 'Jurang Buka %', 'Pra-pasaran %', 'Ujian'],
+    themeDark: '🌙 Gelap', themeLight: '☀ Cerah',
+    howTitle: 'Cara guna',
+    how: ['Pilih <b>bursa</b> dalam kotak Bursa. Setiap bursa meliputi senarai saham besar yang tetap. Forex (pasangan mata wang) ada pilihan sendiri.',
+      'Pilih <b>imbasan</b> dengan butang di atas. Setiap butang mencari corak berbeza. Kotak "Kriteria Peraturan" menerangkan apa yang diuji.',
+      'Tapis senarai dengan <b>Volum Dolar Min</b> (sorok saham yang kurang diniagakan), <b>Sektor</b> dan <b>Cari</b>.',
+      'Klik satu baris dalam jadual untuk lihat carta. Pada telefon, leret jadual ke tepi untuk lihat lebih banyak lajur. Pada komputer, letak tetikus pada tajuk lajur untuk penerangan ringkas.',
+      'Keputusan adalah <b>hujung hari, bukan masa nyata</b>. "Data setakat" di atas jadual menunjukkan masa kemas kini terakhir. Imbasan dijalankan semula selepas setiap pasaran tutup.',
+      '<b>Eksport CSV</b> menyimpan jadual semasa. Ini alat mencari idea, bukan nasihat. Semak carta dan buat kajian sendiri sebelum berdagang.'],
+    glossTitle: 'Maksud istilah',
+    gloss: [['PPP', 'Pantau Pecah Paras: memantau saham yang menembusi paras harga tertinggi baru-baru ini.'],
+      ['Bursa', 'Pasaran saham, cth. Bursa Malaysia.'],
+      ['Pecah paras / Pivot', 'Pecah paras ialah harga tutup melebihi harga tertinggi baru-baru ini (pivot). Pivot 20H = harga tertinggi 20 hari dagangan sebelum hari ini.'],
+      ['Tutup / Ubah %', 'Harga tutup terakhir, dan perubahannya dalam % berbanding tutup semalam.'],
+      ['EMA 20', 'Purata Bergerak Eksponen 20 hari: purata harga tutup 20 hari, dengan berat lebih pada hari terkini.'],
+      ['SMA 50', 'Purata Bergerak Mudah 50 hari: purata biasa 50 harga tutup terakhir. Harga di atasnya menunjukkan aliran naik yang lebih panjang.'],
+      ['Kadar Perubahan 20H %', 'Berapa banyak harga berubah, dalam %, berbanding 20 hari dagangan lalu. Positif = naik. (Sering ditulis ROC.)'],
+      ['Vol/Purata', 'Volum hari ini (bilangan saham diniagakan) dibahagi purata volum 20 hari. 2× bermaksud dua kali ganda aktiviti biasa.'],
+      ['Volum Dolar (J)', 'Purata nilai diniagakan sehari (harga × volum) dalam juta mata wang tempatan. Menunjukkan betapa mudah saham diniagakan.'],
+      ['Julat 10H %', 'Saiz ayunan tinggi-rendah 10 hari terakhir sebagai % harga. Nombor kecil bermakna dagangan ketat dan tenang.'],
+      ['Jurang Buka %', 'Harga buka sesi biasa hari ini berbanding tutup semalam. Ia bukan pra-pasaran.'],
+      ['Pra-pasaran %', 'AS sahaja: harga sebelum pasaran dibuka berbanding tutup semalam.'],
+      ['Ujian', 'Syarat yang benar-benar diperiksa ÷ syarat dalam imbasan. FX lebih sedikit kerana tiada volum.'],
+      ['Vol: tiada', 'Volum tidak tersedia (pasangan mata wang tiada data volum).'],
+      ['FX', 'Pertukaran asing: pasangan mata wang seperti EUR/USD.']],
+    cols: ['Simbol', 'Sektor', 'Tutup', 'Ubah %', 'Pivot 20H', 'Vol/Purata', 'Volum Dolar (J)', 'EMA 20', 'SMA 50', 'Julat 10H %', 'Kadar Perubahan 20H %', 'Jurang Buka %', 'Pra-pasaran %', 'Ujian'],
     tips: ['Simbol', 'Sektor', 'Harga tutup sesi biasa terakhir (tidak dilaraskan)', 'Tutup berbanding tutup semalam, %', 'Harga Tertinggi 20 bar SEBELUM hari ini (dianjak satu bar, tiada look-ahead)',
-      'Volum hari ini ÷ purata volum 20 hari. FX tiada volum (Vol: tiada)', 'Purata 20 hari Tutup × Volum, juta mata wang tempatan. FX: tiada', 'Purata bergerak eksponen 20 hari bagi Tutup', 'Purata bergerak mudah 50 hari bagi Tutup',
-      '(tinggi 10 hari − rendah 10 hari) ÷ tutup × 100', 'Tutup berbanding tutup 20 sesi lalu, %', 'Jurang Buka % = harga BUKA sesi biasa hari ini berbanding harga TUTUP semalam. Ini BUKAN pra-pasaran.',
+      'Volum hari ini ÷ purata volum 20 hari. FX tiada volum (Vol: tiada)', 'Purata 20 hari Tutup × Volum, juta mata wang tempatan. FX: tiada', 'Purata Bergerak Eksponen: purata 20 hari bagi Tutup, hari terkini lebih berat', 'Purata Bergerak Mudah: purata biasa 50 hari bagi Tutup',
+      '(tinggi 10 hari − rendah 10 hari) ÷ tutup × 100', 'Kadar Perubahan: tutup berbanding tutup 20 sesi lalu, %', 'Jurang Buka % = harga BUKA sesi biasa hari ini berbanding harga TUTUP semalam. Ini BUKAN pra-pasaran.',
       'AS sahaja: harga pra-pasaran terkini (04:00–09:30 New York) berbanding tutup semalam. Tiada untuk bursa lain; – jika Yahoo tiada data pra-pasaran', 'Syarat yang benar-benar diuji ÷ syarat dalam imbasan ini. FX melangkau syarat volum'],
     scans: {
       ppp: { name: 'PPP: Pecah Paras 20-Hari', rules: ['Tutup > Tinggi 20 hari terdahulu (pivot rintangan)', 'Volum hari ini ≥ 2.0× purata volum 20 hari', 'Volum dolar purata 20 hari ≥ minimum slaid (lalai 20J)'], metrics: [['Pivot', '20H'], ['Volum Min', '2.0×']] },
       pullback: { name: 'Tarik Balik EMA 20', rules: ['Aliran naik: EMA 20 > SMA 50', 'Harga rendah hari ini menyentuh/turun ke EMA 20', 'Harga tutup kembali di atas EMA 20', 'Volum < 0.8× purata 20 hari (jualan kering)', 'Volum dolar purata 20 hari ≥ minimum slaid'], metrics: [['EMA / SMA', '20 / 50'], ['Volum Maks', '0.8×']] },
       tight: { name: 'Julat Ketat Puncak 52-Minggu', rules: ['Harga tutup dalam 5% daripada tinggi 52 minggu (252 bar dagangan, sebelum hari ini)', 'Julat 10 hari ≤ 10% daripada harga', 'Julat 10 hari hampir terendah 60 hari (≤ 1.25× paras terendah)', 'Volum dolar purata 20 hari ≥ minimum slaid'], metrics: [['Jarak 52M', '≤ 5%'], ['Julat 10H', '≤ 10%']] },
       gap: { name: 'Jurang Pembukaan (Jurang Buka %)', rules: ['Jurang Buka % ≥ +3% (harga buka hari ini berbanding tutup semalam)', 'Volum dolar purata 20 hari ≥ minimum slaid', 'Nota: ini jurang pembukaan sesi biasa. Ia BUKAN pra-pasaran'], metrics: [['Jurang Buka Min', '+3%']] },
-      leaders: { name: 'Peneraju Sektor (ROC-20)', rules: ['ROC 20 sesi positif', 'Harga tutup di atas SMA 50', 'Volum dolar purata 20 hari ≥ minimum slaid', 'Disusun mengikut ROC-20 tertinggi'], metrics: [['Tempoh ROC', '20 sesi'], ['Trend', '> SMA 50']] }
+      leaders: { name: 'Peneraju Sektor (Kadar Perubahan 20 Hari)', rules: ['Kadar Perubahan 20 sesi positif (harga kini vs 20 sesi lalu)', 'Harga tutup di atas SMA 50', 'Volum dolar purata 20 hari ≥ minimum slaid', 'Disusun mengikut Kadar Perubahan tertinggi'], metrics: [['Tempoh Kadar Perubahan', '20 sesi'], ['Trend', '> SMA 50']] }
     }
   }
 };
@@ -292,7 +346,7 @@ const store = {
   set(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* private mode: run without memory */ } }
 };
 let S = store.get();
-let lang = S.lang === 'ms' ? 'ms' : 'en', market = MARKET_LIST[S.market] ? S.market : 'US', scan = SCANS[S.scan] ? S.scan : 'ppp';
+let theme = S.theme === 'dark' ? 'dark' : 'light', lang = S.lang === 'ms' ? 'ms' : 'en', market = MARKET_LIST[S.market] ? S.market : 'US', scan = SCANS[S.scan] ? S.scan : 'ppp';
 let data = null, universe = [], meta = { cur: 'USD', sym: '$', minDv: 20, sliderMax: 500, step: 5 }, selected = null, rows = [];
 const $ = id => document.getElementById(id);
 const t = () => I18N[lang];
@@ -302,7 +356,7 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 const decimals = () => meta.noVolume ? 4 : 2;
 const hasVol = () => !meta.noVolume;
 function save(extra) {
-  S = Object.assign({}, S, { lang, market, scan, sector: $('sector').value, search: $('search').value }, extra || {});
+  S = Object.assign({}, S, { lang, theme, market, scan, sector: $('sector').value, search: $('search').value }, extra || {});
   store.set(S);
 }
 function fmtLocal(iso, tz) {
@@ -321,6 +375,19 @@ const candle = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#ef4
 const emaS = chart.addLineSeries({ color: '#0e7490', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
 const smaS = chart.addLineSeries({ color: '#b45309', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
 const pivS = chart.addLineSeries({ color: '#334155', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, priceLineVisible: false, lastValueVisible: false });
+
+function applyTheme() {
+  const d = theme === 'dark';
+  document.documentElement.dataset.theme = theme;
+  const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = d ? '#0b1220' : '#ffffff';
+  chart.applyOptions({
+    layout: { background: { color: d ? '#111a2e' : '#ffffff' }, textColor: d ? '#94a3b8' : '#475569' },
+    grid: { vertLines: { color: d ? '#25324d' : '#e2e8f0' }, horzLines: { color: d ? '#25324d' : '#e2e8f0' } },
+    rightPriceScale: { borderColor: d ? '#25324d' : '#cbd5e1' }, timeScale: { borderColor: d ? '#25324d' : '#cbd5e1' }
+  });
+  emaS.applyOptions({ color: d ? '#22d3ee' : '#0e7490' }); smaS.applyOptions({ color: d ? '#fbbf24' : '#b45309' }); pivS.applyOptions({ color: d ? '#e2e8f0' : '#334155' });
+  $('themebtn').textContent = d ? t().themeLight : t().themeDark;   // label = what you switch to
+}
 
 function loadChart(s) {
   selected = s.ticker;
@@ -345,7 +412,9 @@ function applyLang() {
   const opt = k => `<option value="${k}" ${k === market ? 'selected' : ''}>${esc(MARKET_LIST[k])}</option>`;
   $('market').innerHTML = `<optgroup label="${esc(t().stocks)}">${Object.keys(MARKET_LIST).filter(k => k !== 'FX').map(opt).join('')}</optgroup>` +
     `<optgroup label="${esc(t().fxGroup)}">${opt('FX')}</optgroup>`;
-  setStatus(); fillSectors(); setupSlider(); if (data) renderAll();
+  $('howto').innerHTML = `<h2>${t().howTitle}</h2><ol class="how">${t().how.map(x => `<li>${x}</li>`).join('')}</ol>` +
+    `<h2 style="margin-top:16px">${t().glossTitle}</h2><dl class="gloss">${t().gloss.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`;
+  applyTheme(); setStatus(); fillSectors(); setupSlider(); if (data) renderAll();
 }
 function setStatus(loading) {
   const st = $('status'), ok = data && data.ok;
@@ -445,6 +514,7 @@ $('minvol').addEventListener('input', () => { render(); save({ minvol: Object.as
 ['sector', 'search'].forEach(id => $(id).addEventListener('input', () => { render(); save(); }));
 $('market').onchange = e => { market = e.target.value; selected = null; $('sector').value = ''; save({ sector: '' }); load(); };
 $('langbtn').onclick = () => { lang = lang === 'en' ? 'ms' : 'en'; save(); applyLang(); };
+$('themebtn').onclick = () => { theme = theme === 'dark' ? 'light' : 'dark'; save(); applyTheme(); };
 $('codebtn').onclick = () => { $('dlgtitle').textContent = t().pyTitle + t().scans[scan].name; $('code').textContent = SCANS[scan].code; $('dlg').showModal(); };
 $('dlgclose').onclick = () => $('dlg').close();
 $('copy').onclick = () => navigator.clipboard.writeText($('code').textContent).then(() => $('copy').textContent = t().copied);

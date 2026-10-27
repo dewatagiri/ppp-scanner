@@ -8,7 +8,7 @@ A free end-of-day breakout screener for **New York, London, Tokyo, Singapore, Ku
 
 A GitHub Actions job runs `scan.py` after each market closes. It downloads daily bars from Yahoo Finance (via `yfinance`), computes the indicators and commits the results to `data/<bourse>.json`. The page (`index.html`) loads that JSON with `fetch()` and applies the scan filters in your browser. There is no backend and no database.
 
-Scans: **PPP 20-Day Breakout**, **EMA 20 Pullback**, **Tight Range at 52-Week High**, **Open Gappers**, **Sector Leaders (ROC-20)**. English and Bahasa Melayu. Installable on your phone ("Add to Home Screen").
+Scans: **PPP 20-Day Breakout**, **EMA 20 Pullback**, **Tight Range at 52-Week High**, **Open Gappers**, **Sector Leaders (20-Day Rate of Change)**. English and Bahasa Melayu. Installable on your phone ("Add to Home Screen").
 
 ## Column definitions
 
@@ -21,7 +21,7 @@ Scans: **PPP 20-Day Breakout**, **EMA 20 Pullback**, **Tight Range at 52-Week Hi
 | Dollar Vol (M) | 20-day average of Close × Volume, in millions of local currency. FX shows `Vol: n/a`. |
 | EMA 20 / SMA 50 | 20-day exponential / 50-day simple moving average of Close. |
 | 10D Range % | (10-day high − 10-day low) ÷ close × 100. |
-| ROC-20 % | Close vs close 20 sessions ago. |
+| Rate of Change 20D % (ROC) | How much the price has moved, in %, versus 20 sessions ago. |
 | **Open Gap %** | **Today's regular-session open vs the previous close.** This is the gap at the opening bell. It is **not** pre-market. |
 | Pre-mkt % | **US only.** Latest pre-market price (04:00–09:30 New York, `prepost=True`) vs the previous close. Shows `n/a` for other bourses, and `–` if Yahoo has no pre-market bars for that ticker. |
 | Tests | Conditions actually tested ÷ conditions in the scan. FX skips the volume conditions, so it shows e.g. `1/3`. |
