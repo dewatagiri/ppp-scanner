@@ -71,7 +71,9 @@ footer{border-top:1px solid var(--line);padding:24px 16px 32px;text-align:center
 footer .inner{max-width:760px;margin:0 auto;display:grid;gap:16px;justify-items:center}
 footer figure{margin:0}
 footer img{width:160px;height:160px;border:1px solid var(--line);border-radius:8px;background:#fff;display:block;margin:0 auto 6px}
-footer figcaption{font-weight:700;color:var(--tx)}
+footer .qrs{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+footer .cap{font-weight:700;color:var(--tx);font-size:14px}
+footer figcaption.sub{font-weight:400;color:var(--mut)}
 footer p{margin:0}
 </style>
 </head>
@@ -115,7 +117,13 @@ footer p{margin:0}
 
 <footer>
   <div class="inner">
-    <figure><img src="assets/qr.png" alt="QR code to support this free tool" width="160" height="160"><figcaption>Support this free tool</figcaption></figure>
+    <div class="support">
+      <p class="cap">Support this free tool</p>
+      <div class="qrs">
+        <figure><img src="assets/qr-wise.png" alt="Wise QR code to support this free tool" width="160" height="160"><figcaption class="sub">Wise (international)</figcaption></figure>
+        <figure><img src="assets/qr.png" alt="Local bank QR code to support this free tool" width="160" height="160"><figcaption class="sub">Local QR (DuitNow / QRIS)</figcaption></figure>
+      </div>
+    </div>
     <p>For education and research only. Not investment advice, and not a recommendation to buy or sell any security. Data comes from Yahoo Finance via yfinance and may be delayed, incomplete or wrong. Check with your broker before trading. Trading involves risk, including loss of capital. Views are my own and do not represent any organisation I am or have been affiliated with.</p>
     <p>This site collects no personal data. Settings are stored only in your own browser. Consistent with Malaysia's Personal Data Protection Act 2010 (PDPA) and Indonesia's Personal Data Protection Law (UU PDP No. 27/2022).</p>
     <p>© 2026 Azman Taufik</p>
