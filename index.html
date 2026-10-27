@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PPP: Pantau Pecah Paras Scanner (Breakout Screener)</title>
+<meta name="description" content="Free end-of-day breakout screener for US, UK, Japan, Singapore, Malaysia, Indonesia, Hong Kong and FX. For education and research only.">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<script src="assets/lightweight-charts.standalone.production.js"></script>
+<style>
+:root{--bg:#ffffff;--panel:#ffffff;--soft:#f8fafc;--line:#e2e8f0;--tx:#0f172a;--mut:#475569;--cy:#0e7490;--am:#b45309;--em:#047857;--rd:#b91c1c;--onacc:#ffffff;--code:#0e7490;--hov:#0e749014}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:12px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:18px;color:var(--cy);letter-spacing:.5px}
+h1 small{display:block;color:var(--mut);font-size:12px;font-weight:400}
+.hr{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{padding:4px 12px;border-radius:999px;font-size:12px;font-weight:700;border:1px solid}
+.badge.live{color:var(--em);border-color:var(--em)}
+.badge.sim{color:var(--rd);border-color:var(--rd)}
+main{padding:16px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0}
+.presets{display:flex;gap:8px;flex-wrap:wrap}
+button,select,input{font:inherit;color:var(--tx);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+button{cursor:pointer}
+button:hover{border-color:var(--cy)}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--cy);outline-offset:1px}
+button.active{background:var(--cy);color:var(--onacc);border-color:var(--cy);font-weight:700}
+.controls{display:flex;gap:16px;flex-wrap:wrap;align-items:center;color:var(--mut)}
+.controls label{display:flex;gap:8px;align-items:center}
+.grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px}
+@media(max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.controls{gap:10px}.controls label{width:100%}.controls select,.controls input[type=search]{flex:1;min-width:0}.controls input[type=range]{flex:1;min-width:0;padding:0}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.card h2{margin:0 0 10px;font-size:14px;color:var(--am);text-transform:uppercase;letter-spacing:.5px}
+#chart{height:400px}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--mut);margin-bottom:6px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid;vertical-align:middle;margin-right:4px}
+.tw{overflow:auto;max-height:420px;border:1px solid var(--line);border-radius:6px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;background:var(--panel)}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2){text-align:left}
+th{color:var(--mut);font-weight:600;font-size:12px;position:sticky;top:0;z-index:2;cursor:help}
+th:first-child,td:first-child{position:sticky;left:0;z-index:1}
+th:first-child{z-index:3}
+tbody tr{cursor:pointer}
+tbody tr:hover td,tbody tr.sel td{background:#ecf6f8}
+.up{color:var(--em)}.dn{color:var(--rd)}
+.na{color:var(--mut);font-size:12px}
+.warn{color:var(--am);font-weight:700}
+ul.rules{margin:0;padding-left:18px}
+ul.rules li{margin:6px 0}
+.metric{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:4px 0}
+.metric b{color:var(--cy);text-align:right}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap}
+.asof{display:flex;gap:6px 16px;flex-wrap:wrap;align-items:baseline;margin:0 0 10px;padding:8px 10px;background:var(--soft);border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--mut)}
+.asof b{color:var(--tx)}
+.asof details{display:inline}
+.asof summary{cursor:pointer;color:var(--am)}
+.banner{padding:10px 12px;border:1px solid var(--am);border-radius:6px;background:#fffbeb;color:#78350f;font-size:13px}
+.unavail{padding:18px;border:1px solid var(--rd);border-radius:8px;background:#fef2f2;color:#7f1d1d;font-weight:700}
+.nodata .hide-nodata{display:none}
+.nodata .grid{display:none}
+dialog{background:var(--panel);color:var(--tx);border:1px solid var(--cy);border-radius:8px;max-width:820px;width:92%}
+dialog::backdrop{background:#0006}
+pre{background:var(--soft);padding:12px;border-radius:6px;overflow:auto;max-height:60vh;color:var(--code);margin:10px 0;border:1px solid var(--line)}
+.note{color:var(--mut);font-size:12px}
+footer{border-top:1px solid var(--line);padding:24px 16px 32px;text-align:center;color:var(--mut);font-size:12px;line-height:1.6}
+footer .inner{max-width:760px;margin:0 auto;display:grid;gap:16px;justify-items:center}
+footer figure{margin:0}
+footer img{width:160px;height:160px;border:1px solid var(--line);border-radius:8px;background:#fff;display:block;margin:0 auto 6px}
+footer figcaption{font-weight:700;color:var(--tx)}
+footer p{margin:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>PPP: Pantau Pecah Paras Scanner<small>(Breakout Screener)</small></h1>
+  <div class="hr">
+    <span id="status" class="badge sim" role="status"></span>
+    <button id="a2hs" hidden></button>
+    <button id="langbtn" aria-label="Language">BM</button>
+  </div>
+</header>
+<main id="main">
+  <div class="presets" id="presets" role="group"></div>
+  <div class="controls">
+    <label><span data-i18n="bourse"></span> <select id="market"></select></label>
+    <label><span id="minvollbl"></span> <input type="range" id="minvol" min="0" max="500" step="5" value="20"><b id="minvolv">20</b></label>
+    <label><span data-i18n="sector"></span> <select id="sector"></select></label>
+    <label><span data-i18n="search"></span> <input type="search" id="search"></label>
+  </div>
+  <div id="unavail" class="unavail" role="alert" hidden></div>
+  <div id="fxnote" class="banner hide-nodata" hidden></div>
+  <div class="grid">
+    <section class="card">
+      <h2 id="charttitle"></h2>
+      <div class="legend"><span><i style="border-color:#0e7490"></i>EMA 20</span><span><i style="border-color:#b45309"></i>SMA 50</span><span><i style="border-color:var(--tx);border-top-style:dashed"></i><span data-i18n="pivot"></span></span></div>
+      <div id="chart"></div>
+    </section>
+    <aside class="card">
+      <h2 data-i18n="rulesTitle"></h2>
+      <div id="rules"></div>
+      <button id="codebtn" style="margin-top:12px;width:100%" data-i18n="codeBtn"></button>
+    </aside>
+  </div>
+  <section class="card hide-nodata">
+    <div class="row"><h2 id="restitle" style="margin:0"></h2><button id="csv" data-i18n="csv"></button></div>
+    <p class="asof" id="asof"></p>
+    <div class="tw"><table><thead><tr id="thead"></tr></thead><tbody id="tbody"></tbody></table></div>
+  </section>
+</main>
+
+<footer>
+  <div class="inner">
+    <figure><img src="assets/qr.png" alt="QR code to support this free tool" width="160" height="160"><figcaption>Support this free tool</figcaption></figure>
+    <p>For education and research only. Not investment advice, and not a recommendation to buy or sell any security. Data comes from Yahoo Finance via yfinance and may be delayed, incomplete or wrong. Check with your broker before trading. Trading involves risk, including loss of capital. Views are my own and do not represent any organisation I am or have been affiliated with.</p>
+    <p>This site collects no personal data. Settings are stored only in your own browser. Consistent with Malaysia's Personal Data Protection Act 2010 (PDPA) and Indonesia's Personal Data Protection Law (UU PDP No. 27/2022).</p>
+    <p>© 2026 Azman Taufik</p>
+  </div>
+</footer>
+
+<dialog id="dlg"><div class="row"><h2 style="margin:0" id="dlgtitle"></h2><button id="dlgclose" data-i18n="close"></button></div><pre id="code"></pre><button id="copy"></button></dialog>
+<dialog id="a2hsdlg"><div class="row"><h2 style="margin:0" data-i18n="a2hs"></h2><button id="a2hsclose" data-i18n="close"></button></div><p id="a2hshelp"></p></dialog>
+
+<script>
+const MARKET_LIST = { US: 'New York (NYSE/Nasdaq)', UK: 'London (LSE)', JP: 'Tokyo (TSE)', SG: 'Singapore (SGX)', MY: 'Kuala Lumpur (Bursa Malaysia)', ID: 'Jakarta (IDX)', HK: 'Hong Kong (HKEX)', FX: 'Forex (spot, no volume)' };
+
+const I18N = {
+  en: {
+    bourse: 'Bourse:', sector: 'Sector:', search: 'Search:', searchPh: 'Ticker, e.g. NVDA', all: 'All',
+    stocks: 'Stocks', fxGroup: 'Forex (own section, no volume)',
+    minvol: 'Min Dollar Vol ({c}M):', minvolFx: 'Volume filter: n/a (FX)', pivot: 'Breakout Pivot (Prior 20D High)',
+    rulesTitle: 'Filter Rules', codeBtn: 'View Python Code (Pandas)', csv: 'Export CSV', close: 'Close', copy: 'Copy Code', copied: 'Copied ✓',
+    matches: 'matches', none: 'No matches', ok: '● SCHEDULED SCAN', bad: '● DATA UNAVAILABLE', loading: 'Loading…',
+    sliderRule: 'Min avg dollar volume slider', pyTitle: 'Python (Pandas) Code — ',
+    unavail: 'Data unavailable for {b} — last good scan: {t}', never: 'none yet',
+    asof: 'Data as of', local: 'local time', lastSession: 'Last session', failedN: 'Failed tickers', source: 'Source',
+    premktNote: 'Pre-mkt % is US only', a2hs: 'Add to Home Screen',
+    a2hsHelp: 'iPhone/iPad (Safari): tap the Share button, then “Add to Home Screen”. Android/desktop Chrome: open the browser menu and choose “Install app” or “Add to Home screen”.',
+    volNa: 'Vol: n/a', na: 'n/a', tested: 'Tests',
+    fxBanner: 'Forex has no volume data (Vol: n/a). Volume conditions are skipped, so only {n} of {m} conditions were tested in this scan. FX results are shown in their own section and are not comparable with stock results.',
+    fxMetric: 'Conditions tested', fxMetricV: '{n} of {m} (volume skipped)',
+    cols: ['Ticker', 'Sector', 'Close', 'Chg %', '20D Pivot', 'Vol/Avg', 'Dollar Vol (M)', 'EMA 20', 'SMA 50', '10D Range %', 'ROC-20 %', 'Open Gap %', 'Pre-mkt %', 'Tests'],
+    tips: ['Ticker symbol', 'Sector', 'Last regular-session close (unadjusted)', 'Close vs previous close, %', 'Highest High of the 20 bars BEFORE today (shifted one bar, no look-ahead)',
+      "Today's volume ÷ 20-day average volume. FX has no volume (Vol: n/a)", '20-day average of Close × Volume, millions of local currency. FX: n/a', '20-day exponential moving average of Close', '50-day simple moving average of Close',
+      '(10-day high − 10-day low) ÷ close × 100', 'Close vs close 20 sessions ago, %', "Open Gap % = today's regular-session OPEN vs previous CLOSE. This is NOT pre-market.",
+      'US only: latest pre-market price (04:00–09:30 New York) vs previous close. n/a for other bourses; – when Yahoo has no pre-market bars', 'Conditions actually tested ÷ conditions in this scan. FX skips the volume conditions'],
+    scans: {
+      ppp: { name: 'PPP: 20-Day Breakout', rules: ['Close > prior 20-day high (resistance pivot)', 'Volume ≥ 2.0× 20-day average volume', 'Avg 20-day dollar volume ≥ slider minimum (default 20M)'], metrics: [['Pivot', '20D'], ['Min Volume', '2.0×']] },
+      pullback: { name: 'EMA 20 Pullback', rules: ['Uptrend: EMA 20 > SMA 50', "Today's low touches or dips below EMA 20", 'Close recovers above EMA 20', 'Volume < 0.8× 20-day average (dry-up)', 'Avg 20-day dollar volume ≥ slider minimum'], metrics: [['EMA / SMA', '20 / 50'], ['Max Volume', '0.8×']] },
+      tight: { name: 'Tight Range at 52-Week High', rules: ['Close within 5% of the 52-week high (252 trading bars, prior to today)', '10-day range ≤ 10% of price', '10-day range near 60-day low (≤ 1.25× the low)', 'Avg 20-day dollar volume ≥ slider minimum'], metrics: [['52W Distance', '≤ 5%'], ['10D Range', '≤ 10%']] },
+      gap: { name: 'Open Gappers (Open Gap %)', rules: ["Open Gap % ≥ +3% (today's open vs previous close)", 'Avg 20-day dollar volume ≥ slider minimum', 'Note: this is the regular-session opening gap. It is NOT pre-market'], metrics: [['Min Open Gap', '+3%']] },
+      leaders: { name: 'Sector Leaders (ROC-20)', rules: ['Positive 20-session ROC', 'Close above SMA 50', 'Avg 20-day dollar volume ≥ slider minimum', 'Ranked by highest ROC-20'], metrics: [['ROC Window', '20 sessions'], ['Trend', '> SMA 50']] }
+    }
+  },
+  ms: {
+    bourse: 'Bursa:', sector: 'Sektor:', search: 'Cari:', searchPh: 'Simbol, cth. NVDA', all: 'Semua',
+    stocks: 'Saham', fxGroup: 'Forex (bahagian sendiri, tiada volum)',
+    minvol: 'Volum Dolar Min ({c}J):', minvolFx: 'Penapis volum: tiada (FX)', pivot: 'Pivot Pecah Paras (Tinggi 20H Terdahulu)',
+    rulesTitle: 'Kriteria Peraturan (Filter Rules)', codeBtn: 'Lihat Kod Python (Pandas)', csv: 'Eksport CSV', close: 'Tutup', copy: 'Salin Kod', copied: 'Disalin ✓',
+    matches: 'padanan', none: 'Tiada padanan', ok: '● IMBASAN BERJADUAL', bad: '● DATA TIDAK TERSEDIA', loading: 'Memuatkan…',
+    sliderRule: 'Slaid volum dolar purata minimum', pyTitle: 'Kod Python (Pandas) — ',
+    unavail: 'Data tidak tersedia untuk {b} — imbasan baik terakhir: {t}', never: 'belum ada',
+    asof: 'Data setakat', local: 'waktu tempatan', lastSession: 'Sesi terakhir', failedN: 'Simbol gagal', source: 'Sumber',
+    premktNote: 'Pra-pasaran % hanya untuk AS', a2hs: 'Tambah ke Skrin Utama',
+    a2hsHelp: 'iPhone/iPad (Safari): ketik butang Kongsi, kemudian “Add to Home Screen”. Chrome Android/desktop: buka menu pelayar dan pilih “Install app” atau “Add to Home screen”.',
+    volNa: 'Vol: tiada', na: 'tiada', tested: 'Ujian',
+    fxBanner: 'Forex tiada data volum (Vol: tiada). Syarat volum dilangkau, jadi hanya {n} daripada {m} syarat diuji dalam imbasan ini. Keputusan FX dipaparkan dalam bahagian sendiri dan tidak setanding dengan saham.',
+    fxMetric: 'Syarat diuji', fxMetricV: '{n} daripada {m} (volum dilangkau)',
+    cols: ['Simbol', 'Sektor', 'Tutup', 'Ubah %', 'Pivot 20H', 'Vol/Purata', 'Volum Dolar (J)', 'EMA 20', 'SMA 50', 'Julat 10H %', 'ROC-20 %', 'Jurang Buka %', 'Pra-pasaran %', 'Ujian'],
+    tips: ['Simbol', 'Sektor', 'Harga tutup sesi biasa terakhir (tidak dilaraskan)', 'Tutup berbanding tutup semalam, %', 'Harga Tertinggi 20 bar SEBELUM hari ini (dianjak satu bar, tiada look-ahead)',
+      'Volum hari ini ÷ purata volum 20 hari. FX tiada volum (Vol: tiada)', 'Purata 20 hari Tutup × Volum, juta mata wang tempatan. FX: tiada', 'Purata bergerak eksponen 20 hari bagi Tutup', 'Purata bergerak mudah 50 hari bagi Tutup',
+      '(tinggi 10 hari − rendah 10 hari) ÷ tutup × 100', 'Tutup berbanding tutup 20 sesi lalu, %', 'Jurang Buka % = harga BUKA sesi biasa hari ini berbanding harga TUTUP semalam. Ini BUKAN pra-pasaran.',
+      'AS sahaja: harga pra-pasaran terkini (04:00–09:30 New York) berbanding tutup semalam. Tiada untuk bursa lain; – jika Yahoo tiada data pra-pasaran', 'Syarat yang benar-benar diuji ÷ syarat dalam imbasan ini. FX melangkau syarat volum'],
+    scans: {
+      ppp: { name: 'PPP: Pecah Paras 20-Hari', rules: ['Tutup > Tinggi 20 hari terdahulu (pivot rintangan)', 'Volum hari ini ≥ 2.0× purata volum 20 hari', 'Volum dolar purata 20 hari ≥ minimum slaid (lalai 20J)'], metrics: [['Pivot', '20H'], ['Volum Min', '2.0×']] },
+      pullback: { name: 'Tarik Balik EMA 20', rules: ['Aliran naik: EMA 20 > SMA 50', 'Harga rendah hari ini menyentuh/turun ke EMA 20', 'Harga tutup kembali di atas EMA 20', 'Volum < 0.8× purata 20 hari (jualan kering)', 'Volum dolar purata 20 hari ≥ minimum slaid'], metrics: [['EMA / SMA', '20 / 50'], ['Volum Maks', '0.8×']] },
+      tight: { name: 'Julat Ketat Puncak 52-Minggu', rules: ['Harga tutup dalam 5% daripada tinggi 52 minggu (252 bar dagangan, sebelum hari ini)', 'Julat 10 hari ≤ 10% daripada harga', 'Julat 10 hari hampir terendah 60 hari (≤ 1.25× paras terendah)', 'Volum dolar purata 20 hari ≥ minimum slaid'], metrics: [['Jarak 52M', '≤ 5%'], ['Julat 10H', '≤ 10%']] },
+      gap: { name: 'Jurang Pembukaan (Jurang Buka %)', rules: ['Jurang Buka % ≥ +3% (harga buka hari ini berbanding tutup semalam)', 'Volum dolar purata 20 hari ≥ minimum slaid', 'Nota: ini jurang pembukaan sesi biasa. Ia BUKAN pra-pasaran'], metrics: [['Jurang Buka Min', '+3%']] },
+      leaders: { name: 'Peneraju Sektor (ROC-20)', rules: ['ROC 20 sesi positif', 'Harga tutup di atas SMA 50', 'Volum dolar purata 20 hari ≥ minimum slaid', 'Disusun mengikut ROC-20 tertinggi'], metrics: [['Tempoh ROC', '20 sesi'], ['Trend', '> SMA 50']] }
+    }
+  }
+};
+
+// Null-safe comparisons: a missing number never passes a test.
+const gt = (a, b) => a != null && b != null && a > b, ge = (a, b) => a != null && b != null && a >= b;
+const lt = (a, b) => a != null && b != null && a < b, le = (a, b) => a != null && b != null && a <= b;
+
+// test(i, m, v): i = indicators, m = min dollar volume (millions), v = bourse has volume data.
+// Volume conditions are skipped only when v is false (FX). For stocks, missing volume FAILS the test.
+// total = conditions in the scan, vol = how many of them need volume (so FX tests total - vol).
+const SCANS = {
+  ppp: {
+    total: 3, vol: 2,
+    test: (i, m, v) => gt(i.Close, i.High20Prior) && (!v || (ge(i.VolRatio, 2) && ge(i.DollarVol20, m * 1e6))),
+    sort: (a, b, v) => v ? b.VolRatio - a.VolRatio : b.ROC20 - a.ROC20,
+    code: `import pandas as pd
+
+def ppp_breakout(df: pd.DataFrame, min_dollar_vol: float = 20_000_000) -> pd.DataFrame:
+    c, h, v = df["Close"], df["High"], df["Volume"]
+    # shift(1): row t holds the max High of bars t-20..t-1, so today's bar is never in its own pivot
+    df["High20Prior"] = h.rolling(20).max().shift(1)
+    df["VolSMA20"] = v.rolling(20).mean()
+    df["DollarVol20"] = (c * v).rolling(20).mean()
+    mask = (
+        (c > df["High20Prior"])
+        & (v >= 2 * df["VolSMA20"])
+        & (df["DollarVol20"] >= min_dollar_vol)
+    )
+    return df[mask]`
+  },
+  pullback: {
+    total: 5, vol: 2,
+    test: (i, m, v) => gt(i.EMA20, i.SMA50) && le(i.Low, i.EMA20) && gt(i.Close, i.EMA20) && (!v || (lt(i.VolRatio, 0.8) && ge(i.DollarVol20, m * 1e6))),
+    sort: (a, b) => b.ROC20 - a.ROC20,
+    code: `import pandas as pd
+
+def ema20_pullback(df: pd.DataFrame) -> pd.DataFrame:
+    c, l, v = df["Close"], df["Low"], df["Volume"]
+    df["EMA20"] = c.ewm(span=20, adjust=False).mean()
+    df["SMA50"] = c.rolling(50).mean()
+    df["VolSMA20"] = v.rolling(20).mean()
+    mask = (
+        (df["EMA20"] > df["SMA50"])
+        & (l <= df["EMA20"])
+        & (c > df["EMA20"])
+        & (v < 0.8 * df["VolSMA20"])
+    )
+    return df[mask]`
+  },
+  tight: {
+    total: 4, vol: 1,
+    test: (i, m, v) => i.High52W != null && ge(i.Close, 0.95 * i.High52W) && i.Range10Low60 != null && le(i.Range10, Math.min(10, i.Range10Low60 * 1.25)) && (!v || ge(i.DollarVol20, m * 1e6)),
+    sort: (a, b) => a.Range10 - b.Range10,
+    code: `import pandas as pd
+
+def tight_range_52w(df: pd.DataFrame) -> pd.DataFrame:
+    c, h, l = df["Close"], df["High"], df["Low"]
+    # 252 trading bars, shifted one bar so today's high is not in its own 52-week high
+    df["High52W"] = h.rolling(252, min_periods=60).max().shift(1)
+    df["Range10"] = 100 * (h.rolling(10).max() - l.rolling(10).min()) / c
+    df["Range10Low60"] = df["Range10"].rolling(60, min_periods=20).min()
+    mask = (
+        (c >= 0.95 * df["High52W"])
+        & (df["Range10"] <= 10)
+        & (df["Range10"] <= 1.25 * df["Range10Low60"])
+    )
+    return df[mask]`
+  },
+  gap: {
+    total: 2, vol: 1,
+    test: (i, m, v) => ge(i.OpenGapPct, 3) && (!v || ge(i.DollarVol20, m * 1e6)),
+    sort: (a, b) => b.OpenGapPct - a.OpenGapPct,
+    code: `import pandas as pd
+
+def open_gappers(df: pd.DataFrame) -> pd.DataFrame:
+    # Open Gap % = today's regular-session open vs previous close. NOT pre-market.
+    df["OpenGapPct"] = 100 * (df["Open"] / df["Close"].shift(1) - 1)
+    return df[df["OpenGapPct"] >= 3]`
+  },
+  leaders: {
+    total: 3, vol: 1,
+    test: (i, m, v) => gt(i.ROC20, 0) && gt(i.Close, i.SMA50) && (!v || ge(i.DollarVol20, m * 1e6)),
+    sort: (a, b) => b.ROC20 - a.ROC20,
+    code: `import pandas as pd
+
+def sector_leaders(df: pd.DataFrame) -> pd.DataFrame:
+    c = df["Close"]
+    df["ROC20"] = (c / c.shift(20) - 1) * 100
+    df["SMA50"] = c.rolling(50).mean()
+    mask = (df["ROC20"] > 0) & (c > df["SMA50"])
+    return df[mask].sort_values("ROC20", ascending=False)`
+  }
+};
+
+// ---- Settings (localStorage may be missing/blocked: always try/catch)
+const KEY = 'ppp.settings.v1';
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem(KEY)) || {}; } catch (e) { return {}; } },
+  set(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); } catch (e) { /* private mode: run without memory */ } }
+};
+let S = store.get();
+let lang = S.lang === 'ms' ? 'ms' : 'en', market = MARKET_LIST[S.market] ? S.market : 'US', scan = SCANS[S.scan] ? S.scan : 'ppp';
+let data = null, universe = [], meta = { cur: 'USD', sym: '$', minDv: 20, sliderMax: 500, step: 5 }, selected = null, rows = [];
+const $ = id => document.getElementById(id);
+const t = () => I18N[lang];
+const f = (x, d = 2) => x == null ? '–' : Number(x).toFixed(d);
+const fdv = x => x == null ? '–' : Number(x / 1e6).toLocaleString('en', { maximumFractionDigits: 0 });
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const decimals = () => meta.noVolume ? 4 : 2;
+const hasVol = () => !meta.noVolume;
+function save(extra) {
+  S = Object.assign({}, S, { lang, market, scan, sector: $('sector').value, search: $('search').value }, extra || {});
+  store.set(S);
+}
+function fmtLocal(iso, tz) {
+  try { return new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZoneName: 'short' }).format(new Date(iso)); }
+  catch (e) { return iso; }
+}
+
+// ---- Chart (white theme only)
+const chart = LightweightCharts.createChart($('chart'), {
+  autoSize: true,
+  layout: { background: { color: '#ffffff' }, textColor: '#475569' },
+  grid: { vertLines: { color: '#e2e8f0' }, horzLines: { color: '#e2e8f0' } },
+  rightPriceScale: { borderColor: '#cbd5e1' }, timeScale: { borderColor: '#cbd5e1' }
+});
+const candle = chart.addCandlestickSeries({ upColor: '#10b981', downColor: '#ef4444', borderVisible: false, wickUpColor: '#10b981', wickDownColor: '#ef4444' });
+const emaS = chart.addLineSeries({ color: '#0e7490', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+const smaS = chart.addLineSeries({ color: '#b45309', lineWidth: 2, priceLineVisible: false, lastValueVisible: false });
+const pivS = chart.addLineSeries({ color: '#334155', lineWidth: 1, lineStyle: LightweightCharts.LineStyle.Dashed, priceLineVisible: false, lastValueVisible: false });
+
+function loadChart(s) {
+  selected = s.ticker;
+  const p = decimals(); candle.applyOptions({ priceFormat: { type: 'price', precision: p, minMove: 1 / 10 ** p } });
+  candle.setData(s.candles); emaS.setData(s.ema20); smaS.setData(s.sma50); pivS.setData(s.pivot20);
+  chart.timeScale().fitContent();
+  $('charttitle').textContent = `${s.ticker} · ${s.sector}`;
+  document.querySelectorAll('#tbody tr').forEach(tr => tr.classList.toggle('sel', tr.dataset.t === s.ticker));
+}
+
+// ---- Static labels
+function applyLang() {
+  document.documentElement.lang = lang === 'ms' ? 'ms' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t()[el.dataset.i18n]);
+  $('search').placeholder = t().searchPh;
+  $('langbtn').textContent = lang === 'en' ? 'BM' : 'EN';
+  $('copy').textContent = t().copy;
+  $('a2hs').textContent = '⬇ ' + t().a2hs;
+  $('a2hshelp').textContent = t().a2hsHelp;
+  $('thead').innerHTML = t().cols.map((c, n) => `<th title="${esc(t().tips[n])}">${esc(c)}</th>`).join('');
+  $('presets').innerHTML = Object.keys(SCANS).map(k => `<button data-k="${k}" class="${k === scan ? 'active' : ''}">${esc(t().scans[k].name)}</button>`).join('');
+  const opt = k => `<option value="${k}" ${k === market ? 'selected' : ''}>${esc(MARKET_LIST[k])}</option>`;
+  $('market').innerHTML = `<optgroup label="${esc(t().stocks)}">${Object.keys(MARKET_LIST).filter(k => k !== 'FX').map(opt).join('')}</optgroup>` +
+    `<optgroup label="${esc(t().fxGroup)}">${opt('FX')}</optgroup>`;
+  setStatus(); fillSectors(); setupSlider(); if (data) renderAll();
+}
+function setStatus(loading) {
+  const st = $('status'), ok = data && data.ok;
+  st.className = 'badge ' + (ok ? 'live' : 'sim');
+  st.textContent = loading ? t().loading : (ok ? t().ok : t().bad);
+}
+function fillSectors() {
+  const cur = $('sector').value || S.sector || '';
+  const secs = [...new Set(universe.map(s => s.sector))].sort();
+  $('sector').innerHTML = `<option value="">${esc(t().all)}</option>` + secs.map(x => `<option ${x === cur ? 'selected' : ''}>${esc(x)}</option>`).join('');
+}
+function setupSlider() {
+  const sl = $('minvol'), fx = !!meta.noVolume;
+  sl.max = meta.sliderMax; sl.step = meta.step; sl.disabled = fx;
+  const saved = S.minvol && S.minvol[market];
+  sl.value = (saved != null && saved >= 0 && saved <= meta.sliderMax) ? saved : meta.minDv;
+  $('minvollbl').textContent = fx ? t().minvolFx : t().minvol.replace('{c}', meta.sym || meta.cur);
+  $('minvolv').textContent = fx ? '' : Number(sl.value).toLocaleString('en');
+}
+
+// ---- Rendering
+function renderAsOf() {
+  const tz = meta.tz, city = meta.city || '';
+  const failed = data.failed || [], reasons = data.failed_reasons || {};
+  const failedHtml = failed.length
+    ? `<details><summary>${esc(t().failedN)}: ${failed.length}</summary>${failed.map(x => `<div>${esc(x)}${reasons[x] ? ' — ' + esc(reasons[x]) : ''}</div>`).join('')}</details>`
+    : `${esc(t().failedN)}: <b>0</b>`;
+  $('asof').innerHTML = `<span>${esc(t().asof)} <b>${esc(fmtLocal(data.generated_at, tz))}</b> (${esc(city)} ${esc(t().local)})</span>` +
+    `<span>${esc(t().lastSession)}: <b>${esc(data.last_session || '–')}</b></span><span>${failedHtml}</span>` +
+    `<span>${esc(t().source)}: ${esc(data.data_source || '')}</span>` +
+    (meta.premarket ? '' : `<span>${esc(t().premktNote)}</span>`);
+}
+
+function render() {
+  const S_ = SCANS[scan], L = t().scans[scan], v = hasVol(), m = v ? +$('minvol').value : 0;
+  const sec = $('sector').value, q = $('search').value.trim().toUpperCase();
+  if (v) $('minvolv').textContent = Number(m).toLocaleString('en');
+  rows = universe.filter(s => (!sec || s.sector === sec) && (!q || s.ticker.includes(q)) && S_.test(s.indicators, m, v))
+                 .map(s => ({ s, i: s.indicators })).sort((a, b) => S_.sort(a.i, b.i, v));
+  $('restitle').textContent = `${L.name} — ${rows.length} ${t().matches}`;
+  const p = decimals(), nTested = S_.total - (v ? 0 : S_.vol);
+  const volCell = x => v ? x : `<span class="na" title="${esc(t().tips[5])}">${esc(t().volNa)}</span>`;
+  const pre = i => !meta.premarket ? `<span class="na">${esc(t().na)}</span>`
+    : (i.PreMktPct == null ? '–' : `<span class="${i.PreMktPct >= 0 ? 'up' : 'dn'}" title="${esc((i.PreMktTime || '') + ' ' + (meta.tz || ''))}">${f(i.PreMktPct)}</span>`);
+  $('tbody').innerHTML = rows.map(({ s, i }) => `<tr data-t="${esc(s.ticker)}"><td><b>${esc(s.ticker)}</b></td><td>${esc(s.sector)}</td><td>${f(i.Close, p)}</td>
+    <td class="${i.ChangePct >= 0 ? 'up' : 'dn'}">${f(i.ChangePct)}</td><td>${f(i.High20Prior, p)}</td><td>${volCell(i.VolRatio == null ? '–' : f(i.VolRatio) + '×')}</td><td>${volCell(fdv(i.DollarVol20))}</td>
+    <td>${f(i.EMA20, p)}</td><td>${f(i.SMA50, p)}</td><td>${f(i.Range10)}</td><td class="${i.ROC20 >= 0 ? 'up' : 'dn'}">${f(i.ROC20)}</td>
+    <td class="${i.OpenGapPct >= 0 ? 'up' : 'dn'}">${f(i.OpenGapPct)}</td><td>${pre(i)}</td><td class="${v ? '' : 'warn'}">${nTested}/${S_.total}</td></tr>`).join('')
+    || `<tr><td colspan="14" style="text-align:center;color:var(--mut)">${esc(t().none)}</td></tr>`;
+  const mets = L.metrics.concat(v ? [[t().sliderRule, `${meta.sym}${Number(m).toLocaleString('en')}M`]]
+    : [[t().fxMetric, t().fxMetricV.replace('{n}', nTested).replace('{m}', S_.total)], [t().cols[5], t().volNa]]);
+  $('rules').innerHTML = '<ul class="rules">' + L.rules.map(r => `<li>${esc(r)}</li>`).join('') + '</ul>' +
+    '<div style="margin-top:10px">' + mets.map(([k, x]) => `<div class="metric"><span>${esc(k)}</span><b>${esc(x)}</b></div>`).join('') + '</div>';
+  const fx = $('fxnote'); fx.hidden = v;
+  if (!v) fx.textContent = t().fxBanner.replace('{n}', nTested).replace('{m}', S_.total);
+  const pick = universe.find(s => s.ticker === selected && rows.some(r => r.s === s)) || (rows[0] && rows[0].s);
+  if (pick) loadChart(pick);
+  else { selected = null; [candle, emaS, smaS, pivS].forEach(x => x.setData([])); $('charttitle').textContent = ''; }
+}
+
+function renderAll() {
+  const bad = !(data && data.ok);
+  $('main').classList.toggle('nodata', bad);
+  $('unavail').hidden = !bad;
+  if (bad) {
+    const last = data && data.generated_at && data.meta ? fmtLocal(data.generated_at, data.meta.tz) : t().never;
+    $('unavail').textContent = t().unavail.replace('{b}', MARKET_LIST[market]).replace('{t}', last);
+    $('fxnote').hidden = true; $('charttitle').textContent = ''; $('restitle').textContent = '';
+    setStatus(); return;
+  }
+  renderAsOf(); render(); setStatus();
+}
+
+// ---- Load: static JSON written by scan.py. No backend, no fallback data.
+async function load() {
+  setStatus(true);
+  data = null; universe = [];
+  try {
+    const r = await fetch(`data/${market.toLowerCase()}.json`, { cache: 'no-cache' });
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    j.ok = j.status === 'ok' && Array.isArray(j.stocks) && j.stocks.length > 0;
+    data = j;
+    if (j.meta) meta = j.meta;
+    if (j.ok) universe = j.stocks;
+  } catch (e) {
+    data = { ok: false };
+  }
+  setupSlider(); fillSectors(); renderAll();
+}
+
+// ---- Events
+$('presets').onclick = e => { const b = e.target.closest('button'); if (!b) return; scan = b.dataset.k;
+  document.querySelectorAll('#presets button').forEach(x => x.classList.toggle('active', x === b)); render(); save(); };
+$('tbody').onclick = e => { const tr = e.target.closest('tr[data-t]'); if (tr) loadChart(universe.find(s => s.ticker === tr.dataset.t)); };
+$('minvol').addEventListener('input', () => { render(); save({ minvol: Object.assign({}, S.minvol, { [market]: +$('minvol').value }) }); });
+['sector', 'search'].forEach(id => $(id).addEventListener('input', () => { render(); save(); }));
+$('market').onchange = e => { market = e.target.value; selected = null; $('sector').value = ''; save({ sector: '' }); load(); };
+$('langbtn').onclick = () => { lang = lang === 'en' ? 'ms' : 'en'; save(); applyLang(); };
+$('codebtn').onclick = () => { $('dlgtitle').textContent = t().pyTitle + t().scans[scan].name; $('code').textContent = SCANS[scan].code; $('dlg').showModal(); };
+$('dlgclose').onclick = () => $('dlg').close();
+$('copy').onclick = () => navigator.clipboard.writeText($('code').textContent).then(() => $('copy').textContent = t().copied);
+$('csv').onclick = () => {
+  const h = ['Ticker', 'Sector', 'Close', 'ChangePct', 'High20Prior', 'VolRatio', 'DollarVol20', 'EMA20', 'SMA50', 'Range10', 'ROC20', 'OpenGapPct', 'PreMktPct'];
+  const body = rows.map(({ s, i }) => [s.ticker, s.sector, i.Close, i.ChangePct, i.High20Prior, i.VolRatio, i.DollarVol20, i.EMA20, i.SMA50, i.Range10, i.ROC20, i.OpenGapPct, i.PreMktPct].map(v => v ?? '').join(','));
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([[h.join(','), ...body].join('\n')], { type: 'text/csv' }));
+  a.download = `ppp_${market}_${scan}.csv`; a.click();
+};
+
+// ---- Add to Home Screen (PWA)
+let deferredPrompt = null;
+const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone;
+if (!standalone) $('a2hs').hidden = false;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; });
+window.addEventListener('appinstalled', () => { $('a2hs').hidden = true; });
+$('a2hs').onclick = async () => {
+  if (deferredPrompt) { deferredPrompt.prompt(); try { await deferredPrompt.userChoice; } catch (e) {} deferredPrompt = null; }
+  else $('a2hsdlg').showModal();
+};
+$('a2hsclose').onclick = () => $('a2hsdlg').close();
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+$('search').value = S.search || '';
+applyLang(); load();
+</script>
+</body>
+</html>
